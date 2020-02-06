@@ -91,9 +91,9 @@ public:
 
     void create(int p)
     {
-        if(procCount == 16)
+        if(p < 0 || p > 2 || procCount == 16)
         {
-            cout << "* error" << endl;
+            cout << "-1 ";
             return;
         }
 
@@ -131,23 +131,39 @@ public:
         incProcCount();
         freeID.erase(freeID.begin());
 
-
+//        cout << "Scheduler Create()" << endl;
         scheduler();
     }
 
-    void destroy(int proc)
+    void destroy(int proc,bool first=true)
     {
-
         if(procCount == 1 || proc == 0)
         {
-            cout << "* error" << endl;
+            cout << "-1 ";
             return;
         }
 
 //        for all k in children of proc destroy(k)
         while(!PCB[getIndex(proc)]->getChildren().empty())
         {
-            destroy(PCB[getIndex(proc)]->getChildren().back());
+            int child = PCB[getIndex(proc)]->getChildren().back();
+//            for(int i = 0; i < RL[PCB[getIndex(child)]->getPriority()].size(); i++)
+//            {
+//                if(RL[PCB[getIndex(child)]->getPriority()][i] == child)
+//                {
+//                    RL[PCB[getIndex(child)]->getPriority()].erase(RL[PCB[getIndex(child)]->getPriority()].begin()+i);
+//                    break;
+//                }
+//            }
+////        release all resources of child
+//            for(int i = 0; i < PCB[getIndex(child)]->getResource().size(); i++)
+//                release(PCB[getIndex(child)]->getResource()[i][0],PCB[getIndex(child)]->getResource()[i][1]);
+////        free PCB of child
+//            PCB.erase(PCB.begin()+getIndex(child));
+//
+//            procCount-=1;
+//            freeID.push_back(child);
+            destroy(child,false);
             PCB[getIndex(proc)]->getChildren().pop_back();
         }
 
@@ -175,20 +191,22 @@ public:
         freeID.push_back(proc);
 
 //        display: “n processes destroyed”
-        cout << "* Process " << proc << " destroyed" << endl;
-        scheduler();
+//        cout << "* Process " << proc << " destroyed" << endl;
+//        cout << "Scheduler Destroy()" << endl;
+        if(first)
+            scheduler();
     }
 
     void request(int r,int k)
     {
         if(containR(r) != -1)
         {
-            cout << "* error" << endl;
+            cout << "-1 ";
             return;
         }
         if(currProc == 0)
         {
-            cout << "* error" << endl;
+            cout << "-1 ";
             return;
         }
 
@@ -196,7 +214,7 @@ public:
         {
             if(k != 1)
             {
-                cout << "* error" << endl;
+                cout << "-1 ";
                 return;
             }
         }
@@ -204,7 +222,7 @@ public:
         {
             if(k < 1 || k > 2)
             {
-                cout << "* error" << endl;
+                cout << "-1 ";
                 return;
             }
         }
@@ -212,7 +230,7 @@ public:
         {
             if(k < 1 || k > 3)
             {
-                cout << "* error" << endl;
+                cout << "-1 ";
                 return;
             }
         }
@@ -228,6 +246,7 @@ public:
 
 //            display: “resource r allocated”
 //            cout << "* Resource " << r << " allocated" << endl;
+//            cout << "Resource for Proc" << currProc << ": " << PCB[getIndex(currProc)]->getResource()[0][0] << ","<< PCB[getIndex(currProc)]->getResource()[0][1] << endl;
         }
         else
         {
@@ -240,9 +259,9 @@ public:
 
 //            display: “process i blocked”
 //            cout << "* Process " << currProc << " blocked" << endl;
-
 //            scheduler()
         }
+//        cout <<  "Scheduler Request()" << endl;
         scheduler();
     }
 
@@ -253,7 +272,7 @@ public:
             if(k > PCB[getIndex(currProc)]->getResource()[containR(r)][1])
             {
                 // k (units to be released) is greater than currproc's resource's allocated units
-                cout << "* error 1" << endl;
+                cout << "-1 ";
                 return;
             }
 
@@ -290,14 +309,13 @@ public:
                 else
                     break;
             }
+//            cout << "Scheduler Release()" << endl;
             scheduler();
         }
         else
         {
-            cout << "* error 2" << endl;
+            cout << "-1 ";
         }
-
-
     }
 
     int getIndex(int proc)
@@ -333,6 +351,7 @@ public:
 //        int temp = RL[0];
 //        RL.erase(RL.begin());
 //        RL.push_back(temp);
+//        cout << "Scheduler Timeout()" << endl;
         scheduler();
     }
 
@@ -345,7 +364,8 @@ public:
         else if(!RL[0].empty())
             currProc = RL[0][0];
 //        currProc = RL[0];
-        cout << "* Process " << currProc << " running" << endl;
+//        cout << "* Process " << currProc << " running" << endl;
+        cout << currProc << " ";
     }
 
     //Returns resource position in vector of resources from Process
@@ -360,6 +380,18 @@ public:
         }
         return -1;
     }
+
+    int containC(int c)
+    {
+        for(int i = 0; i < PCB[getIndex(currProc)]->getChildren().size();i++)
+        {
+            if(PCB[getIndex(currProc)]->getChildren()[i] == c)
+                return 0;
+        }
+        return -1;
+    }
+
+
 };
 
 #endif //PROJ1NEW_MANAGER_H
