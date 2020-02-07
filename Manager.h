@@ -23,6 +23,7 @@ public:
         RL[1].clear();
         RL[0].clear();
         RCB.clear();
+        freeID.clear();
 
         Process * newProc = new Process();
         newProc->setState(1);
@@ -91,7 +92,7 @@ public:
 
     void create(int p)
     {
-        if(p < 0 || p > 2 || procCount == 16)
+        if(p < 1 || p > 2 || procCount == 16)
         {
             cout << "-1 ";
             return;
@@ -147,27 +148,25 @@ public:
         while(!PCB[getIndex(proc)]->getChildren().empty())
         {
             int child = PCB[getIndex(proc)]->getChildren().back();
-//            for(int i = 0; i < RL[PCB[getIndex(child)]->getPriority()].size(); i++)
-//            {
-//                if(RL[PCB[getIndex(child)]->getPriority()][i] == child)
-//                {
-//                    RL[PCB[getIndex(child)]->getPriority()].erase(RL[PCB[getIndex(child)]->getPriority()].begin()+i);
-//                    break;
-//                }
-//            }
-////        release all resources of child
-//            for(int i = 0; i < PCB[getIndex(child)]->getResource().size(); i++)
-//                release(PCB[getIndex(child)]->getResource()[i][0],PCB[getIndex(child)]->getResource()[i][1]);
-////        free PCB of child
-//            PCB.erase(PCB.begin()+getIndex(child));
-//
-//            procCount-=1;
-//            freeID.push_back(child);
             destroy(child,false);
             PCB[getIndex(proc)]->getChildren().pop_back();
+
         }
 
 //        remove proc from parent's list
+        if(first)
+        {
+            int parent = PCB[getIndex(proc)]->getParent();
+            for(int i = 0; i < PCB[getIndex(parent)]->getChildren().size(); i++)
+            {
+                if(PCB[getIndex(parent)]->getChildren()[i] == proc)
+                {
+                    PCB[getIndex(parent)]->getChildren().erase(PCB[getIndex(parent)]->getChildren().begin() + i);
+                    break;
+                }
+            }
+        }
+
 
 //        remove proc from RL or waiting list
         for(int i = 0; i < RL[PCB[getIndex(proc)]->getPriority()].size(); i++)
@@ -181,7 +180,7 @@ public:
 
 //        release all resources of proc
         for(int i = 0; i < PCB[getIndex(proc)]->getResource().size(); i++)
-            release(PCB[getIndex(proc)]->getResource()[i][0],PCB[getIndex(proc)]->getResource()[i][1]);
+            release(PCB[getIndex(proc)]->getResource()[i][0],PCB[getIndex(proc)]->getResource()[i][1],false);
 
 
 //        free PCB of proc
@@ -265,7 +264,7 @@ public:
         scheduler();
     }
 
-    void release(int r, int k)
+    void release(int r, int k, bool notDest = true)
     {
         if(containR(r) != -1)
         {
@@ -291,7 +290,7 @@ public:
                 RCB[r]->setState(RCB[r]->getState() + k);
             }
 
-            cout << RCB[r]->getState() << endl;
+//            cout << RCB[r]->getState() << endl;
 
             while(!RCB[r]->getWaitlist().empty() && RCB[r]->getState() > 0)
             {
@@ -310,11 +309,13 @@ public:
                     break;
             }
 //            cout << "Scheduler Release()" << endl;
-            scheduler();
+            if(notDest)
+                scheduler();
         }
         else
         {
-            cout << "-1 ";
+            if(notDest)
+                cout << "-1 ";
         }
     }
 

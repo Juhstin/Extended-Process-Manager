@@ -40,7 +40,7 @@ int main() {
         else if(inputV[0] == "cr")
         {
             try {
-                if (inputV.size() != 2 || stoi(inputV[1]) < 0 || stoi(inputV[1]) > 2) {
+                if (inputV.size() != 2 || stoi(inputV[1]) < 1 || stoi(inputV[1]) > 2) {
                     cout << "-1 ";
                     continue;
                 }
